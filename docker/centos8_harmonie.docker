@@ -1,0 +1,115 @@
+# -- docker --
+######### START Instructions ########
+# USER_ID="$(id -u)"
+# CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
+# HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag centos8_harmonie -f centos8_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name c8_harm localhost/centos8_harmonie
+# podman attach c8_harm
+######### END Instructions ##########
+#
+FROM centos:latest
+
+RUN dnf install epel-release -y
+RUN dnf update -y
+RUN dnf install dnf-plugins-core -y
+RUN dnf config-manager --set-enabled powertools
+
+RUN dnf install automake.noarch \
+        bash.x86_64 \
+        bison.x86_64 \
+        byacc.x86_64 \
+        blas.x86_64 \
+        blas-devel.x86_64 \
+        eccodes.x86_64 \
+        eccodes-data.noarch \
+        eccodes-devel.x86_64 \
+        eccodes-doc.noarch \
+        flex.x86_64 \
+        gcc-c++.x86_64 \
+        git.x86_64 \
+        glibc-langpack-en.x86_64 \
+        ksh.x86_64 \
+        lapack.x86_64 \
+        lapack-devel.x86_64 \
+        lapack-static.x86_64 \
+        libtool.x86_64 \
+        make.x86_64 \
+        netcdf.x86_64 \
+        netcdf-devel.x86_64 \
+        netcdf-static.x86_64 \
+        netcdf-fortran.x86_64 \
+        netcdf-fortran-devel.x86_64 \
+        netcdf-fortran-static.x86_64 \
+        openmpi.x86_64 \
+        openmpi-devel.x86_64 \
+        openssl.x86_64 \
+        openssl-devel.x86_64 \
+        perl.x86_64 \
+        rsync.x86_64 \
+        wget.x86_64 -y
+
+RUN mkdir -p /tmp/build_all
+WORKDIR /tmp/build_all
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3.tar.gz
+RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.6.0-Source.tar.gz
+RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz
+
+RUN tar xvfz cmake-3.20.3.tar.gz 
+WORKDIR /tmp/build_all/cmake-3.20.3
+RUN ./bootstrap
+RUN make -j 2
+RUN make install
+
+WORKDIR /tmp/build_all
+RUN tar xvfz boost_1_76_0.tar.gz
+RUN tar xvfz ecFlow-5.6.0-Source.tar.gz
+
+ENV WK=/tmp/build_all/ecFlow-5.6.0-Source
+ENV BOOST_ROOT=/tmp/build_all/boost_1_76_0
+
+WORKDIR /tmp/build_all/boost_1_76_0
+RUN pwd
+RUN ./bootstrap.sh
+RUN /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/boost_build.sh
+
+WORKDIR /tmp/build_all/ecFlow-5.6.0-Source
+RUN mkdir /tmp/build_all/ecFlow-5.6.0-Source/build
+WORKDIR /tmp/build_all/ecFlow-5.6.0-Source/build
+RUN cmake .. -DENABLE_PYTHON=no -DENABLE_UI=OFF
+RUN make -j 2
+RUN ctest
+RUN make install
+
+WORKDIR /
+ARG USER_ID
+RUN useradd --create-home harm -u "$USER_ID"
+
+WORKDIR /home/harm
+USER harm
+RUN mkdir /home/harm/.ssh
+RUN chown harm:harm /home/harm/.ssh
+
+# Authorize SSH Host
+RUN mkdir -p /home/harm/.ssh && \
+    chown harm:harm /home/harm/.ssh && \
+    chmod 0700 /home/harm/.ssh && \
+    ssh-keyscan github.com > /home/harm/.ssh/known_hosts
+
+# Add the keys and set permissions
+ARG SSH_KEY
+RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
+    chmod 700 /home/harm/.ssh/id_rsa
+
+CMD ["/bin/bash"]
+
+RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_git/pre-CY46h1" > /home/harm/build.sh
+RUN echo "mkdir -p /home/harm/hm_home/bd460001"        >> /home/harm/build.sh
+RUN echo "cd hm_home/bd460001"                         >> /home/harm/build.sh
+RUN echo "ln -s /home/harm/harmonie_git/pre-CY46h1/config-sh/Harmonie ." >> /home/harm/build.sh
+RUN echo "./Harmonie setup -r /home/harm/harmonie_git/pre-CY46h1 -h centos8" >> /home/harm/build.sh
+RUN echo "export USER=harm"                            >> /home/harm/build.sh
+RUN echo "./Harmonie Install"                          >> /home/harm/build.sh
+
+RUN chmod 755 /home/harm/build.sh
