@@ -1,7 +1,15 @@
 # gcc-harmonie-test
-A docker wrap for automatic testing of the Harmonie benchmark using GCC
+A docker wrap for automatic testing of the Harmonie benchmark using GCC.
 
-# CentOS 8 container
+Harmonie containers have been developed using rootless podman (v1.6.4 on RHEL7 and v2.2.1 on CentOS 8). 
+
+For v1.6.4 you may need to increase the limits on the number of open files (ulimit -n). This can be set (by your sys-admin) in /etc/security/limits.conf:
+```
+username         soft    nofile          2048
+username         hard    nofile          20480
+```
+
+## CentOS 8 container
 
 For Harmonie we can create a CentOS 8 container and compile the code using GCC+OpenMPI.
 
