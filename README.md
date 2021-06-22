@@ -1,5 +1,6 @@
-# gcc-harmonie-test
-A docker wrap for automatic testing of the Harmonie benchmark using GCC.
+# harmonie-containers
+
+A docker wrap for automatic testing of the Harmonie using GCC.
 
 Harmonie containers have been developed using rootless podman (v1.6.4 on RHEL7 and v2.2.1 on CentOS 8). 
 
