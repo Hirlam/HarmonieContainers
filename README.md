@@ -1,4 +1,4 @@
-# harmonie-containers
+# HarmonieContainers
 
 A docker wrap for automatic testing of the Harmonie using GCC.
 
