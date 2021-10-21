@@ -33,21 +33,23 @@ podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name c8_harm localho
 podman attach c8_harm
 ```
  * Login again
- ```
- podman start c8_harm
- podman attach c8_harm
- ```
+```
+podman start c8_harm
+podman attach c8_harm
+```
 
 ## CentOS 8 MUSC (without ecFlow)
+
 ```
 podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --tag centos8_musc -f docker/centos8_musc.docker
 podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name c8_musc localhost/centos8_musc
+```
  * Login (or attach to the new container)
 ```
 podman attach c8_musc
 ```
  * Login again
- ```
- podman start c8_musc
- podman attach c8_musc
- ```
+```
+podman start c8_musc
+podman attach c8_musc
+```
