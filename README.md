@@ -27,6 +27,7 @@ HOST_ECF_PORT=`expr ${USER_ID} + 11500`
 ```
 podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag centos8_harmonie -f docker/centos8_harmonie.docker
 podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name c8_harm localhost/centos8_harmonie
+```
  * Login (or attach to the new container)
 ```
 podman attach c8_harm
