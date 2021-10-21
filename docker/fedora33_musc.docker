@@ -1,17 +1,15 @@
 # -- docker --
 ######### START Instructions ########
 # USER_ID="$(id -u)"
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag fedora33_musc -f fedora33_musc.docker
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --tag fedora33_musc -f fedora33_musc.docker
 # podman run -dit --name f33_musc localhost/fedora33_musc
 # podman attach f33_musc
 ######### END Instructions ##########
 #
 FROM fedora:33
 
-#RUN dnf install epel-release -y
 RUN dnf update -y
 RUN dnf install dnf-plugins-core -y
-#RUN dnf config-manager --set-enabled powertools
 
 RUN dnf install automake.noarch \
         bash.x86_64 \
@@ -51,8 +49,7 @@ RUN dnf install automake.noarch \
         wget.x86_64 -y
 
 WORKDIR /
-ARG USER_ID
-RUN useradd --create-home harm -u "$USER_ID"
+RUN useradd --create-home harm
 
 WORKDIR /home/harm
 USER harm
@@ -74,9 +71,3 @@ RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
     chmod 700 /home/harm/.ssh/id_rsa
 
 CMD ["/bin/bash"]
-
-RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_git/pre-CY46h1" > /home/harm/build.sh
-RUN echo "mkdir -p /home/harm/hm_musc/musc46"          >> /home/harm/build.sh
-RUN echo "cd hm_musc/musc46"                           >> /home/harm/build.sh
-RUN echo "/home/harm/harmonie_git/pre-CY46h1/util/musc/scr/musc_setup.h -h fedora33" >> /home/harm/build.sh
-RUN chmod 755 /home/harm/build.sh

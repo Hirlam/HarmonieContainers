@@ -1,7 +1,7 @@
 # -- docker --
 ######### START Instructions ########
 # USER_ID="$(id -u)"
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag centos8_musc -f centos8_musc.docker
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --tag centos8_musc -f centos8_musc.docker
 # podman run -dit --name c8_musc localhost/centos8_musc
 # podman attach c8_musc
 ######### END Instructions ##########
@@ -50,8 +50,7 @@ RUN dnf install automake.noarch \
         wget.x86_64 -y
 
 WORKDIR /
-ARG USER_ID
-RUN useradd --create-home harm -u "$USER_ID"
+RUN useradd --create-home harm
 
 WORKDIR /home/harm
 USER harm
@@ -73,9 +72,3 @@ RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
     chmod 700 /home/harm/.ssh/id_rsa
 
 CMD ["/bin/bash"]
-
-RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_git/pre-CY46h1" > /home/harm/build.sh
-RUN echo "mkdir -p /home/harm/hm_musc/musc46"          >> /home/harm/build.sh
-RUN echo "cd hm_home/musc46"                           >> /home/harm/build.sh
-RUN echo "/home/harm/harmonie_git/pre-CY46h1/util/musc/scr/musc_setup.h -h centos8" >> /home/harm/build.sh
-RUN chmod 755 /home/harm/build.sh
