@@ -1,0 +1,65 @@
+# -- docker --
+######### START Instructions ########
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --tag debian11_musc -f debian11_musc.docker
+# podman run -dit --name d11_musc localhost/debian11_musc
+# podman attach d11_musc
+######### END Instructions ##########
+#
+FROM debian:11
+
+RUN apt update -y
+
+RUN apt-get install -y \
+        automake \
+        bash \
+        bison \
+        byacc \
+        flex \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hostname \
+        ksh \
+        libblas-dev \
+        libeccodes-data \
+        libeccodes-dev \
+        libeccodes-doc \
+        libeccodes-tools \
+        libfftw3-dev \
+        libhdf5-dev \
+        libhdf5-doc \
+        liblapack-dev \
+        libnetcdf-dev \
+        libnetcdff-dev \
+        libopenmpi-dev \
+        libtool \
+        make \
+        perl \
+        rsync \
+        vim \
+        wget
+
+WORKDIR /
+RUN useradd --create-home harm
+
+WORKDIR /home/harm
+USER harm
+
+ENV USER=harm
+
+RUN mkdir /home/harm/.ssh
+RUN chown harm:harm /home/harm/.ssh
+
+# Authorize SSH Host
+RUN mkdir -p /home/harm/.ssh && \
+    chown harm:harm /home/harm/.ssh && \
+    chmod 0700 /home/harm/.ssh && \
+    ssh-keyscan github.com > /home/harm/.ssh/known_hosts
+
+# Add the keys and set permissions
+ARG SSH_KEY
+RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
+    chmod 700 /home/harm/.ssh/id_rsa
+
+CMD ["/bin/bash"]
