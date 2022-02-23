@@ -3,17 +3,12 @@
 # USER_ID="$(id -u)"
 # CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
 # HOST_ECF_PORT=`expr ${USER_ID} + 11500`
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag centos8_harmonie -f centos8_harmonie.docker
-# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name c8_harm localhost/centos8_harmonie
-# podman attach c8_harm
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag rocky8_harmonie -f centos8_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name rocky8_harm localhost/rocky8_harmonie
+# podman attach rocky8_harm
 ######### END Instructions ##########
 #
-FROM centos:latest
-
-WORKDIR /etc/yum.repos.d
-RUN sed -i 's/mirrorlist/#mirrorlist/g' /etc/yum.repos.d/CentOS-*
-RUN sed -i 's|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' /etc/yum.repos.d/CentOS-*
-RUN dnf update -y
+FROM docker.io/rockylinux/rockylinux:latest
 
 RUN dnf install epel-release -y
 RUN dnf update -y
@@ -122,6 +117,6 @@ RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_gi
 RUN echo "mkdir -p /home/harm/hm_home/bd460001"        >> /home/harm/build.sh
 RUN echo "cd hm_home/bd460001"                         >> /home/harm/build.sh
 RUN echo "ln -s /home/harm/harmonie_git/pre-CY46h1/config-sh/Harmonie ." >> /home/harm/build.sh
-RUN echo "./Harmonie setup -r /home/harm/harmonie_git/pre-CY46h1 -h centos8" >> /home/harm/build.sh
+RUN echo "./Harmonie setup -r /home/harm/harmonie_git/pre-CY46h1 -h rocky8" >> /home/harm/build.sh
 RUN echo "./Harmonie Install"                          >> /home/harm/build.sh
 RUN chmod 755 /home/harm/build.sh
