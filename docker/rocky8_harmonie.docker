@@ -3,7 +3,7 @@
 # USER_ID="$(id -u)"
 # CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
 # HOST_ECF_PORT=`expr ${USER_ID} + 11500`
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag rocky8_harmonie -f centos8_harmonie.docker
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag rocky8_harmonie -f rocky8_harmonie.docker
 # podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name rocky8_harm localhost/rocky8_harmonie
 # podman attach rocky8_harm
 ######### END Instructions ##########
