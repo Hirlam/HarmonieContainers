@@ -25,6 +25,8 @@ RUN dnf install automake.noarch \
         eccodes-data.noarch \
         eccodes-devel.x86_64 \
         eccodes-doc.noarch \
+        fftw.x86_64 \
+        fftw-devel.x86_64 \
         flex.x86_64 \
         gcc-c++.x86_64 \
         gdal-devel.x86_64 \
