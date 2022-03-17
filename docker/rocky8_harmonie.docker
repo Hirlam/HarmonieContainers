@@ -90,7 +90,13 @@ RUN make -j 2
 RUN ctest
 RUN make install
 
+# Proceed with the setup
 WORKDIR /
+
+# Remove the build folder used for external sources
+RUN rm -rf /tmp/build_all
+
+# Create user environment
 ARG USER_ID
 RUN useradd --create-home harm -u "$USER_ID"
 
