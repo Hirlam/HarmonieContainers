@@ -1,0 +1,127 @@
+# -- docker --
+######### START Instructions ########
+# USER_ID="$(id -u)"
+# CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
+# HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu20_harmonie -f ubuntu20_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} --name ubuntu20_harm localhost/ubuntu20_harmonie
+# podman attach ubuntu20_harm
+######### END Instructions ##########
+#
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y
+
+RUN apt-get install -y \
+        automake \
+        bash \
+        bison \
+        byacc \
+        flex \
+        g++ \
+        gcc \
+        gfortran \
+        git \
+        hostname \
+        ksh \
+        libblas-dev \
+        libeccodes-data \
+        libeccodes-dev \
+        libeccodes-doc \
+        libeccodes-tools \
+        libfftw3-dev \
+        libhdf5-dev \
+        libhdf5-doc \
+        liblapack-dev \
+        libnetcdf-dev \
+        libnetcdff-dev \
+        libopenmpi-dev \
+        libtool \
+        make \
+        openssl \
+        libssl1.1 \
+        libssl-dev \
+        libcrypt-dev \
+        perl \
+        rsync \
+        vim \
+        wget
+
+RUN mkdir -p /tmp/build_all
+WORKDIR /tmp/build_all
+
+RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3.tar.gz
+RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.6.0-Source.tar.gz
+RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz
+
+RUN tar xvfz cmake-3.20.3.tar.gz
+WORKDIR /tmp/build_all/cmake-3.20.3
+RUN ./bootstrap
+RUN make -j 2
+RUN make install
+
+WORKDIR /tmp/build_all
+RUN tar xvfz boost_1_76_0.tar.gz
+RUN tar xvfz ecFlow-5.6.0-Source.tar.gz
+
+ENV WK=/tmp/build_all/ecFlow-5.6.0-Source
+ENV BOOST_ROOT=/tmp/build_all/boost_1_76_0
+ENV CPLUS_INCLUDE_PATH="$CPLUS_INCLUDE_PATH:/usr/include/python3.8/"
+
+WORKDIR /tmp/build_all/boost_1_76_0
+RUN pwd
+RUN ./bootstrap.sh
+RUN sed -i 's#/usr/lib64/libcrypt.so#/usr/lib/x86_64-linux-gnu/libcrypt.so#g' /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/site_config/site-config-Linux64.jam
+RUN sed -i 's#/usr/lib64/libssl.so#/usr/lib/x86_64-linux-gnu/libssl.so#g' /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/site_config/site-config-Linux64.jam
+RUN sed -i 's#/usr/lib64/libcrypto.so#/usr/lib/x86_64-linux-gnu/libcrypto.so#g' /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/site_config/site-config-Linux64.jam
+RUN /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/boost_build.sh
+
+WORKDIR /tmp/build_all/ecFlow-5.6.0-Source
+RUN mkdir /tmp/build_all/ecFlow-5.6.0-Source/build
+WORKDIR /tmp/build_all/ecFlow-5.6.0-Source/build
+RUN cmake .. -DENABLE_PYTHON=no -DENABLE_UI=OFF
+RUN make -j 2
+RUN ctest
+RUN make install
+
+# Proceed with the setup
+WORKDIR /
+
+# Remove the build folder used for external sources
+RUN rm -rf /tmp/build_all
+
+# Create user environment
+ARG USER_ID
+RUN useradd --create-home harm -u "$USER_ID"
+
+WORKDIR /home/harm
+USER harm
+
+ENV USER=harm
+
+RUN mkdir /home/harm/.ssh
+RUN chown harm:harm /home/harm/.ssh
+
+# Authorize SSH Host
+RUN mkdir -p /home/harm/.ssh && \
+    chown harm:harm /home/harm/.ssh && \
+    chmod 0700 /home/harm/.ssh && \
+    ssh-keyscan github.com > /home/harm/.ssh/known_hosts
+
+# Add the keys and set permissions
+ARG SSH_KEY
+RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
+    chmod 700 /home/harm/.ssh/id_rsa
+
+CMD ["/bin/bash"]
+
+RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_git/pre-CY46h1" > /home/harm/build.sh
+RUN echo "mkdir -p /home/harm/hm_home/bd460001"        >> /home/harm/build.sh
+RUN echo "cd hm_home/bd460001"                         >> /home/harm/build.sh
+RUN echo "ln -s /home/harm/harmonie_git/pre-CY46h1/config-sh/Harmonie ." >> /home/harm/build.sh
+RUN echo "./Harmonie setup -r /home/harm/harmonie_git/pre-CY46h1 -h ubuntu20" >> /home/harm/build.sh
+RUN echo "./Harmonie Install"                          >> /home/harm/build.sh
+RUN chmod 755 /home/harm/build.sh
+
