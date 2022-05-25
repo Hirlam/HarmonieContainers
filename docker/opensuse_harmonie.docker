@@ -117,10 +117,10 @@ RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
 
 CMD ["/bin/bash"]
 
-RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b pre-CY46h1 harmonie_git/pre-CY46h1" > /home/harm/build.sh
+RUN echo "git clone git@github.com:Hirlam/Harmonie.git -b dev-CY46h1 harmonie_git/dev-CY46h1" > /home/harm/build.sh
 RUN echo "mkdir -p /home/harm/hm_home/bd460001"        >> /home/harm/build.sh
 RUN echo "cd hm_home/bd460001"                         >> /home/harm/build.sh
-RUN echo "ln -s /home/harm/harmonie_git/pre-CY46h1/config-sh/Harmonie ." >> /home/harm/build.sh
-RUN echo "./Harmonie setup -r /home/harm/harmonie_git/pre-CY46h1 -h opensuse" >> /home/harm/build.sh
+RUN echo "ln -s /home/harm/harmonie_git/dev-CY46h1/config-sh/Harmonie ." >> /home/harm/build.sh
+RUN echo "./Harmonie setup -r /home/harm/harmonie_git/dev-CY46h1 -h opensuse" >> /home/harm/build.sh
 RUN echo "./Harmonie Install"                          >> /home/harm/build.sh
 RUN chmod 755 /home/harm/build.sh
