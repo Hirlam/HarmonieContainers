@@ -57,7 +57,7 @@ RUN mkdir -p /tmp/build_all
 WORKDIR /tmp/build_all
 
 RUN wget https://github.com/Kitware/CMake/releases/download/v3.20.3/cmake-3.20.3.tar.gz
-RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.6.0-Source.tar.gz
+RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.9.0-Source.tar.gz
 RUN wget https://boostorg.jfrog.io/artifactory/main/release/1.76.0/source/boost_1_76_0.tar.gz
 
 RUN tar xvfz cmake-3.20.3.tar.gz 
@@ -68,19 +68,19 @@ RUN make install
 
 WORKDIR /tmp/build_all
 RUN tar xvfz boost_1_76_0.tar.gz
-RUN tar xvfz ecFlow-5.6.0-Source.tar.gz
+RUN tar xvfz ecFlow-5.9.0-Source.tar.gz
 
-ENV WK=/tmp/build_all/ecFlow-5.6.0-Source
+ENV WK=/tmp/build_all/ecFlow-5.9.0-Source
 ENV BOOST_ROOT=/tmp/build_all/boost_1_76_0
 
 WORKDIR /tmp/build_all/boost_1_76_0
 RUN pwd
 RUN ./bootstrap.sh
-RUN /tmp/build_all/ecFlow-5.6.0-Source/build_scripts/boost_build.sh
+RUN /tmp/build_all/ecFlow-5.9.0-Source/build_scripts/boost_build.sh
 
-WORKDIR /tmp/build_all/ecFlow-5.6.0-Source
-RUN mkdir /tmp/build_all/ecFlow-5.6.0-Source/build
-WORKDIR /tmp/build_all/ecFlow-5.6.0-Source/build
+WORKDIR /tmp/build_all/ecFlow-5.9.0-Source
+RUN mkdir /tmp/build_all/ecFlow-5.9.0-Source/build
+WORKDIR /tmp/build_all/ecFlow-5.9.0-Source/build
 RUN cmake .. -DENABLE_PYTHON=no -DENABLE_UI=OFF
 RUN make -j 2
 RUN ctest
