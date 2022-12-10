@@ -32,7 +32,7 @@ RUN zypper -n install  \
         gdal-devel.x86_64 \
         hostname \
         hdf5-gnu-hpc-devel \
-        libgdal30.x86_64 \
+        libgdal32.x86_64 \
         python3-GDAL.x86_64 \
         git.x86_64 \
         ksh.x86_64 \
