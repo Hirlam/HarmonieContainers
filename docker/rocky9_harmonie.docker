@@ -1,0 +1,139 @@
+# -- docker --
+######### START Instructions ########
+# USER_ID="$(id -u)"
+# CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
+# HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag rocky9_harmonie -f rocky9_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name rocky9_harm localhost/rocky9_harmonie
+# podman attach rocky9_harm
+######### END Instructions ##########
+#
+FROM docker.io/rockylinux/rockylinux:9.3
+
+RUN dnf install epel-release -y
+RUN dnf update -y
+RUN dnf install dnf-plugins-core -y
+RUN dnf config-manager --set-enabled crb
+
+RUN dnf install -y \
+        automake.noarch \
+        bash \
+        bash-completion \
+        bison \
+        byacc \
+        fftw \
+        fftw-devel \
+        flex \
+        gcc-c++ \
+        git \
+        glibc-langpack-en \
+        ksh \
+        libtool \
+        make \
+        openmpi \
+        openmpi-devel \
+        perl \
+        python3 \
+        python3-pip \
+        python3-pyyaml \
+        rsync
+
+RUN dnf install -y \
+        lapack-devel \
+        blas-devel
+
+RUN dnf install -y \
+        eccodes \
+        eccodes-data.noarch \
+        eccodes-devel \
+        eccodes-doc.noarch
+
+
+RUN dnf install -y \
+        gdal-devel \
+        gdal-libs \
+        python3-gdal \
+        gdal-python-tools
+
+RUN dnf install -y \
+        netcdf \
+        netcdf-devel \
+        netcdf-static \
+        netcdf-fortran \
+        netcdf-fortran-devel \
+        netcdf-fortran-static
+
+RUN dnf install -y \
+        boost \
+        boost-devel \
+        boost-chrono \
+        boost-date-time \
+        boost-filesystem \
+        boost-program-options \
+        boost-system \
+        boost-timer \
+        boost-test \
+        boost-static
+
+RUN dnf install \
+        openssl \
+        openssl-devel \
+        openssl-libs \
+	-y
+
+RUN dnf install \
+        wget \
+        cmake \
+	-y
+
+RUN mkdir -p /tmp/build_all
+WORKDIR /tmp/build_all
+
+RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.12.4-Source.tar.gz
+RUN tar xvfz ecFlow-5.12.4-Source.tar.gz
+WORKDIR /tmp/build_all/ecFlow-5.12.4-Source
+RUN mkdir /tmp/build_all/ecFlow-5.12.4-Source/build
+WORKDIR /tmp/build_all/ecFlow-5.12.4-Source/build
+RUN cmake .. -DENABLE_PYTHON=no -DENABLE_UI=OFF -DBOOST_ROOT=/usr
+RUN make -j 4
+RUN make install
+
+# Proceed with the setup
+WORKDIR /tmp/build_all
+RUN git clone --depth 1 --branch 3.8.4 https://github.com/ecmwf/ecbuild
+RUN mkdir /tmp/build_all/ecbuild/bootstrap
+WORKDIR /tmp/build_all/ecbuild/bootstrap
+RUN ../bin/ecbuild --prefix=/usr/local ..
+RUN make install
+
+# Remove the build folder used for external sources
+RUN rm -rf /tmp/build_all
+
+RUN mkdir -p /serve/data/nwp
+
+# Create user environment
+ARG USER_ID
+RUN useradd --create-home harm -u "$USER_ID"
+
+WORKDIR /home/harm
+USER harm
+
+ENV USER=harm
+
+RUN mkdir /home/harm/.ssh
+RUN chown harm:harm /home/harm/.ssh
+
+# Authorize SSH Host
+RUN mkdir -p /home/harm/.ssh && \
+    chown harm:harm /home/harm/.ssh && \
+    chmod 0700 /home/harm/.ssh && \
+    ssh-keyscan github.com > /home/harm/.ssh/known_hosts
+
+# Add the keys and set permissions
+ARG SSH_KEY
+RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
+    chmod 700 /home/harm/.ssh/id_rsa
+
+RUN pip3 install --user fypp
+
+CMD ["/bin/bash"]
