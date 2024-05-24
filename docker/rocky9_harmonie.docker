@@ -1,8 +1,6 @@
 # -- docker --
 ######### START Instructions ########
-# USER_ID="$(id -u)"
-# CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500`
-# HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# USER_ID=2000 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
 # podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag rocky9_harmonie -f rocky9_harmonie.docker
 # podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name rocky9_harm localhost/rocky9_harmonie
 # podman attach rocky9_harm
@@ -16,17 +14,19 @@ RUN dnf install dnf-plugins-core -y
 RUN dnf config-manager --set-enabled crb
 
 RUN dnf install -y \
-        automake.noarch \
+        automake \
         bash \
         bash-completion \
         bison \
         byacc \
-        fftw \
-        fftw-devel \
+        cmake \
         flex \
+        gcc \
         gcc-c++ \
+        gcc-gfortran \
         git \
         glibc-langpack-en \
+        hostname \
         ksh \
         libtool \
         make \
@@ -36,9 +36,13 @@ RUN dnf install -y \
         python3 \
         python3-pip \
         python3-pyyaml \
-        rsync
+        rsync \
+        vim \
+        wget
 
 RUN dnf install -y \
+        fftw \
+        fftw-devel \
         lapack-devel \
         blas-devel
 
@@ -48,13 +52,6 @@ RUN dnf install -y \
         eccodes-devel \
         eccodes-doc.noarch
 
-
-RUN dnf install -y \
-        gdal-devel \
-        gdal-libs \
-        python3-gdal \
-        gdal-python-tools
-
 RUN dnf install -y \
         netcdf \
         netcdf-devel \
@@ -62,6 +59,18 @@ RUN dnf install -y \
         netcdf-fortran \
         netcdf-fortran-devel \
         netcdf-fortran-static
+
+RUN dnf install -y \
+        hdf5 \
+        hdf5-devel \
+        hdf5-static
+
+RUN dnf install -y \
+        gdal-devel \
+        gdal-libs \
+        python3-gdal \
+        gdal-python-tools
+
 
 RUN dnf install -y \
         boost \
@@ -81,14 +90,10 @@ RUN dnf install \
         openssl-libs \
 	-y
 
-RUN dnf install \
-        wget \
-        cmake \
-	-y
-
 RUN mkdir -p /tmp/build_all
 WORKDIR /tmp/build_all
 
+# Compile 3rd-party from source: ecFlow
 RUN wget https://confluence.ecmwf.int/download/attachments/8650755/ecFlow-5.12.4-Source.tar.gz
 RUN tar xvfz ecFlow-5.12.4-Source.tar.gz
 WORKDIR /tmp/build_all/ecFlow-5.12.4-Source
@@ -98,7 +103,7 @@ RUN cmake .. -DENABLE_PYTHON=no -DENABLE_UI=OFF -DBOOST_ROOT=/usr
 RUN make -j 4
 RUN make install
 
-# Proceed with the setup
+# Compile 3rd-party from source: ecbuild
 WORKDIR /tmp/build_all
 RUN git clone --depth 1 --branch 3.8.4 https://github.com/ecmwf/ecbuild
 RUN mkdir /tmp/build_all/ecbuild/bootstrap
@@ -109,6 +114,7 @@ RUN make install
 # Remove the build folder used for external sources
 RUN rm -rf /tmp/build_all
 
+# Create a data directory
 RUN mkdir -p /serve/data/nwp
 
 # Create user environment
