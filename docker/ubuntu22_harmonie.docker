@@ -5,7 +5,7 @@
 # podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu22_harm localhost/ubuntu22_harmonie
 # podman ps -a
 # podman attach ubuntu22_harm
-# git clone git@github.com:ewhelan/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu22 && config-sh/Harmonie Install
+# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu22 && config-sh/Harmonie Install
 ######### END Instructions ##########
 #
 FROM ubuntu:22.04

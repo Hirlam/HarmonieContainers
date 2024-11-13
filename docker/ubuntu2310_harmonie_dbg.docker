@@ -5,8 +5,8 @@
 # podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu2310_harm_dbg localhost/ubuntu2310_harmonie_dbg
 # podman ps -a
 # podman attach ubuntu2310_harm
-# git clone --recurse-submodules git@github.com:ewhelan/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu2310 && config-sh/Harmonie Install
-# git clone git@github.com:ewhelan/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu24.10 && config-sh/Harmonie Install
+# git clone --recurse-submodules git@github.com:Hirlam/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu2310 && config-sh/Harmonie Install
+# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu24.10 && config-sh/Harmonie Install
 ######### END Instructions ##########
 #
 FROM ubuntu:23.10
