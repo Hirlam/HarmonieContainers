@@ -1,14 +1,15 @@
 # -- docker --
 ######### START Instructions ########
-# USER_ID=3024 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu24_harmonie -f ubuntu24_harmonie.docker
-# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu24_harm localhost/ubuntu24_harmonie
+# USER_ID=3023 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu2310_harmonie -f ubuntu2310_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu2310_harm localhost/ubuntu2310_harmonie
 # podman ps -a
-# podman attach ubuntu24_harm
-# git clone --recurse-submodules git@github.com:ewhelan/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu24 && config-sh/Harmonie Install
+# podman attach ubuntu2310_harm
+# git clone --recurse-submodules git@github.com:Hirlam/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu2310 && config-sh/Harmonie Install
+# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu24.10 && config-sh/Harmonie Install
 ######### END Instructions ##########
 #
-FROM ubuntu:24.04
+FROM ubuntu:23.10
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -56,8 +57,13 @@ RUN apt-get install -y \
 
 RUN apt-get install -y \
         libhdf5-dev \
-        libhdf5-hl-fortran-100t64 \
+        libhdf5-openmpi-hl-fortran-100 \
         libhdf5-doc
+
+RUN apt-get install -y \
+        gdal-bin \
+        gdal-data \
+        python3-gdal
 
 RUN apt-get install -y \
         ecbuild

@@ -1,14 +1,15 @@
 # -- docker --
 ######### START Instructions ########
-# USER_ID=3022 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
-# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu22_harmonie -f ubuntu22_harmonie.docker
-# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu22_harm localhost/ubuntu22_harmonie
+# USER_ID=3025 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu2410_harmonie -f ubuntu2410_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu2410_harm localhost/ubuntu2410_harmonie
 # podman ps -a
-# podman attach ubuntu22_harm
-# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu22 && config-sh/Harmonie Install
+# podman attach ubuntu2410_harm
+# git clone --recurse-submodules git@github.com:Hirlam/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu2410 && config-sh/Harmonie Install
+# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu24.10 && config-sh/Harmonie Install
 ######### END Instructions ##########
 #
-FROM ubuntu:22.04
+FROM ubuntu:24.10
 
 ARG DEBIAN_FRONTEND=noninteractive
 
@@ -56,11 +57,19 @@ RUN apt-get install -y \
 
 RUN apt-get install -y \
         libhdf5-dev \
-        libhdf5-hl-fortran-100 \
+        libhdf5-hl-fortran-100t64 \
         libhdf5-doc
 
 RUN apt-get install -y \
+        gdal-bin \
+        gdal-data \
+        python3-gdal
+
+RUN apt-get install -y \
         ecbuild
+
+RUN apt-get install -y \
+        fypp
 
 RUN apt-get install -y \
         ecflow-client \
@@ -97,8 +106,6 @@ RUN mkdir -p /home/harm/.ssh && \
 ARG SSH_KEY
 RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
     chmod 700 /home/harm/.ssh/id_rsa
-
-RUN pip3 install --user fypp
 
 CMD ["/bin/bash"]
 
