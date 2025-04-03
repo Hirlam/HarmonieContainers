@@ -1,0 +1,111 @@
+# -- docker --
+######### START Instructions ########
+# USER_ID=3026 && CONTAINER_ECF_PORT=`expr ${USER_ID} + 1500` && HOST_ECF_PORT=`expr ${USER_ID} + 11500`
+# podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_rsa)" --build-arg USER_ID="${USER_ID}" --tag ubuntu2504_harmonie -f ubuntu2504_harmonie.docker
+# podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name ubuntu2504_harm localhost/ubuntu2504_harmonie
+# podman ps -a
+# podman attach ubuntu2504_harm
+# git clone --recurse-submodules git@github.com:Hirlam/HarmonieCSC.git && cd HarmonieCSC/ && config-sh/Harmonie setup -r . -h ubuntu2504 && config-sh/Harmonie Install
+# git clone git@github.com:Hirlam/Harmonie.git && cd Harmonie/ && config-sh/Harmonie setup -r . -h ubuntu25.04 && config-sh/Harmonie Install
+######### END Instructions ##########
+#
+FROM ubuntu:25.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update -y
+
+RUN apt-get install -y \
+        automake \
+        bash \
+        bash-completion \
+        bison \
+        byacc \
+        cmake \
+        flex \
+        gcc \
+        g++ \
+        gfortran \
+        git \
+        hostname \
+        ksh \
+        libopenmpi-dev \
+        libtool \
+        make \
+        perl \
+        python3 \
+        python3-pip \
+        python3-yaml \
+        rsync \
+        vim \
+        wget
+
+RUN apt-get install -y \
+        libblas-dev \
+        libfftw3-dev \
+        liblapack-dev
+
+RUN apt-get install -y \
+        libeccodes-data \
+        libeccodes-dev \
+        libeccodes-doc \
+        libeccodes-tools
+
+RUN apt-get install -y \
+        libnetcdf-dev \
+        libnetcdff-dev
+
+RUN apt-get install -y \
+        libhdf5-dev \
+        libhdf5-hl-fortran-310 \
+        libhdf5-doc
+
+RUN apt-get install -y \
+        gdal-bin \
+        gdal-data \
+        python3-gdal
+
+RUN apt-get install -y \
+        ecbuild
+
+RUN apt-get install -y \
+        fypp
+
+RUN apt-get install -y \
+        ecflow-client \
+        ecflow-server
+
+# Fix ecFlow installation
+RUN sed -i '/ECFLOW_BINDIR=/a\ECFLOW_CLIENT_BINDIR="/usr/bin"' /sbin/ecflow_start /sbin/ecflow_stop
+RUN sed -i 's/${ECFLOW_BINDIR}\/ecflow_client/${ECFLOW_CLIENT_BINDIR}\/ecflow_client/g' /sbin/ecflow_start /sbin/ecflow_stop
+RUN mv /sbin/ecflow_start /sbin/ecflow_start.sh
+RUN mv /sbin/ecflow_stop /sbin/ecflow_stop.sh
+
+# Create a data directory
+RUN mkdir -p /serve/data/nwp
+
+# Create user environment
+ARG USER_ID
+RUN useradd --create-home harm -u "$USER_ID"
+
+WORKDIR /home/harm
+USER harm
+
+ENV USER=harm
+
+RUN mkdir /home/harm/.ssh
+RUN chown harm:harm /home/harm/.ssh
+
+# Authorize SSH Host
+RUN mkdir -p /home/harm/.ssh && \
+    chown harm:harm /home/harm/.ssh && \
+    chmod 0700 /home/harm/.ssh && \
+    ssh-keyscan github.com > /home/harm/.ssh/known_hosts
+
+# Add the keys and set permissions
+ARG SSH_KEY
+RUN echo "$SSH_KEY" > /home/harm/.ssh/id_rsa && \
+    chmod 700 /home/harm/.ssh/id_rsa
+
+CMD ["/bin/bash"]
+
