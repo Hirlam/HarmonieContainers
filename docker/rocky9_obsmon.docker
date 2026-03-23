@@ -1,8 +1,7 @@
 # -- docker --
 ######### START Instructions ########
 # podman build --build-arg SSH_KEY="$(cat ~/.ssh/id_ed25519)" --tag rocky9_obsmon -f rocky9_obsmon.docker
-## podman run -dit -p ${HOST_ECF_PORT}:${CONTAINER_ECF_PORT} -v /data/nwp:/serve/data/nwp --name rocky9_obsmon localhost/rocky9_obsmon
-# podman run -dit --build-arg SSH_KEY="$(cat ~/.ssh/id_ed25519)" --name rocky9_obsmon localhost/rocky9_obsmon
+# podman run -dit -p 15391:5391 --build-arg SSH_KEY="$(cat ~/.ssh/id_ed25519)" --name rocky9_obsmon localhost/rocky9_obsmon
 # podman attach rocky9_obsmon
 ######### END Instructions ##########
 #
@@ -53,6 +52,10 @@ RUN dnf install -y \
     libpng-devel.x86_64 \
     netcdf-devel.x86_64 \
     sqlite-devel.x86_64
+
+# curl
+RUN dnf install -y \
+        udunits2-devel.x86_64
 
 # openssl
 RUN dnf install -y \
