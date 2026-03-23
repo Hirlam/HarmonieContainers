@@ -22,47 +22,45 @@ RUN apt-get install -y \
         git \
         libtool \
         make \
+        wget \
         vim
 
 RUN apt-get install -y \
-        R
+        gpg
+
+RUN wget -qO- https://cloud.r-project.org/bin/linux/ubuntu/marutter_pubkey.asc | gpg --dearmor -o /usr/share/keyrings/r-project.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/r-project.gpg] https://cloud.r-project.org/bin/linux/ubuntu jammy-cran40/" | tee -a /etc/apt/sources.list.d/r-project.list
+
+RUN apt-get update -y
+
+RUN apt-get install -y \
+        r-base
 
 # curl
-RUN apt-get install -y --allowerasing \
-        libcurl.x86_64 \
-        libcurl-devel.x86_64
+RUN apt-get install -y \
+        curl \
+        libcurl4-openssl-dev
 
 # systemfonts
 RUN apt-get install -y \
-    fontconfig-devel \
-    freetype-devel \
-    libpng-devel \
-    harfbuzz-devel \
-    fribidi-devel \
-    pkg-config
-
-# terra
-RUN apt-get install -y \
-    gdal-devel.x86_64 \
-    geos-devel.x86_64 \
-    proj-devel.x86_64 \
-    libtiff-devel.x86_64 \
-    libjpeg-turbo-devel.x86_64 \
-    libpng-devel.x86_64 \
-    netcdf-devel.x86_64 \
-    sqlite-devel.x86_64
-
-# units
-RUN apt-get install -y \
-    udunits2-devel.x86_64
-
-# V8
-RUN apt-get install -y \
-    v8-12.4-devel.x86_64
+    libfontconfig1-dev \
+    libfreetype6-dev \
+    libharfbuzz-dev \
+    libfribidi-dev \
+    libpng-dev \
+    libtiff-dev \
+    libjpeg-dev \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    libnetcdf-dev \
+    libsqlite3-dev \
+    libudunits2-dev \
+    libv8-dev
 
 # openssl
-RUN dnf install -y \
-    openssl-devel.x86_64
+RUN apt-get install -y \
+    libssl-dev
 
 # Create user environment
 RUN useradd --create-home obsmon
